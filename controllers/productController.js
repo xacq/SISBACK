@@ -71,10 +71,10 @@ exports.getProductAttributes = async (req, res) => {
   try {
     const { productId } = req.params;
     const [rows] = await db.execute(`
-      SELECT pa.*, a.name, a.description 
-      FROM product_attributes_mapping pam
-      JOIN product_attributes pa ON pam.attribute_id = pa.attribute_id
-      WHERE pam.product_id = ?
+    SELECT pa.*
+    FROM product_attributes_mapping pam
+    JOIN product_attributes pa ON pam.attribute_id = pa.attribute_id
+    WHERE pam.product_id = ?
     `, [productId]);
     res.json(rows);
   } catch (error) {
