@@ -72,7 +72,7 @@ exports.login = async (req, res) => {
       success: true, 
       message: 'Inicio de sesión exitoso',
       user: {
-        id: user.id,
+        id: user.user_id,
         username: user.username,
         email: user.email
       }
