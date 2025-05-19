@@ -12,10 +12,14 @@ app.use(express.urlencoded({ extended: true }));
 
 // Importación segura de rutas
 import authRoutes from './routes/authRoutes.js';
+const userProfileRoutes = require('./routes/userProfile');
 import productRoutes from './routes/productRoutes.js';
+const recommendationRoutes = require('./routes/recommendations');
 
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', userProfileRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/recommendations', recommendationRoutes); // <-- AÑADIR ESTA LÍNEA
 
 // Inicio del servidor
 const PORT = process.env.PORT || 5000;
