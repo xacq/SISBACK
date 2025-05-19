@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database'); // Importa la instancia de Sequelize
+const sequelize = require('../config/db.js').default; // Importa la instancia de Sequelize
 
 const Product = sequelize.define('Product', {
     product_id: {
@@ -42,4 +42,13 @@ const Product = sequelize.define('Product', {
     timestamps: false // Tu tabla no tiene createdAt/updatedAt
 });
 
+
+// Métodos de asociación
+export const hasOne = (model, options) => {
+  User.hasOne(model, options);
+};
+
+export const hasMany = (model, options) => {
+  User.hasMany(model, options);
+};
 module.exports = Product;

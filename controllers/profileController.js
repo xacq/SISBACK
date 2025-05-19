@@ -1,4 +1,4 @@
-const User = require('../models/userModel');
+const User = require('../models/userModel.js').default;
 
 exports.saveProfile = async (req, res) => {
     try {

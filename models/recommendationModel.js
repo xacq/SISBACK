@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const sequelize = require('../config/db.js').default;
 
 const Recommendation = sequelize.define('Recommendation', {
     recommendation_id: {
@@ -49,5 +49,14 @@ const Recommendation = sequelize.define('Recommendation', {
     tableName: 'recommendations',
     timestamps: false // 'recommended_at' se maneja con defaultValue
 });
+
+// Métodos de asociación
+export const hasOne = (model, options) => {
+  User.hasOne(model, options);
+};
+
+export const hasMany = (model, options) => {
+  User.hasMany(model, options);
+};
 
 module.exports = Recommendation;

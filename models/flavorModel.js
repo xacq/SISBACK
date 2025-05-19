@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const sequelize = require('../config/db.js').default;
 
 const Flavor = sequelize.define('Flavor', {
     flavor_id: {
@@ -17,4 +17,13 @@ const Flavor = sequelize.define('Flavor', {
     timestamps: false
 });
 
-module.exports = Flavor;
+// Métodos de asociación
+export const hasOne = (model, options) => {
+  User.hasOne(model, options);
+};
+
+export const hasMany = (model, options) => {
+  User.hasMany(model, options);
+};
+
+export default Flavor;

@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const sequelize = require('../config/db.js').default;
 
 const ProductAttribute = sequelize.define('ProductAttribute', {
     attribute_id: {
@@ -24,5 +24,14 @@ const ProductAttribute = sequelize.define('ProductAttribute', {
     tableName: 'product_attributes',
     timestamps: false
 });
+
+// Métodos de asociación
+export const hasOne = (model, options) => {
+  User.hasOne(model, options);
+};
+
+export const hasMany = (model, options) => {
+  User.hasMany(model, options);
+};
 
 module.exports = ProductAttribute;

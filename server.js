@@ -1,66 +1,104 @@
-require('dotenv').config();
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
+import 'dotenv/config'; // Versión ES Modules de dotenv
+import express from 'express';
+import { json } from 'body-parser';
+import cors from 'cors';
+
+import pool from './config/db.js';
+
 const app = express();
-const sequelize = require('./config/db');
+app.use(express.json());  // Reemplaza body-parser.json()
+app.use(express.urlencoded({ extended: true }));  // Reemplaza body-parser.urlencoded()
+app.use(cors());
 
-// --- 1. IMPORTAR TODOS LOS MODELOS ---
-const User = require('./models/userModel');
-const Product = require('./models/productModel');
-const ProductCategory = require('./models/productCategoryModel');
-const ProductType = require('./models/productTypeModel');
-const Flavor = require('./models/flavorModel');
-const ProductAttribute = require('./models/productAttributeModel');
-const ProductNutrition = require('./models/productNutritionModel');
-const UserProfile = require('./models/userProfileModel');
-const Recommendation = require('./models/recommendationModel');
-const TrainingSession = require('./models/trainingSessionModel');
+// --- 2. IMPORTAR MODELOS CON SINTAXIS CORRECTA ---
+// Cambiamos a importar el módulo completo y luego destructurar
+import * as UserModule from './models/userModel.js';
+import * as ProductModule from './models/productModel.js';
+import * as ProductCategoryModule from './models/productCategoryModel.js';
+import * as ProductTypeModule from './models/productTypeModel.js';
+import * as FlavorModule from './models/flavorModel.js';
+import * as ProductAttributeModule from './models/productAttributeModel.js';
+import * as ProductNutritionModule from './models/productNutritionModel.js';
+import * as UserProfileModule from './models/userProfileModel.js';
+import * as RecommendationModule from './models/recommendationModel.js';
+import * as TrainingSessionModule from './models/trainingSessionModel.js';
 
-// --- 2. DEFINIR ASOCIACIONES ---
+// Destructurar los modelos y métodos de asociación
+const User = UserModule.default;
+const { hasOne, hasMany } = UserModule;
 
+const Product = ProductModule.default;
+const { belongsTo: productBelongsTo, 
+       hasOne: productHasOne, 
+       belongsToMany: productBelongsToMany, 
+       hasMany: productHasMany } = ProductModule;
+
+const ProductCategory = ProductCategoryModule.default;
+const { hasMany: categoryHasMany } = ProductCategoryModule;
+
+const ProductType = ProductTypeModule.default;
+const { belongsTo: typeBelongsTo, hasMany: typeHasMany } = ProductTypeModule;
+
+const Flavor = FlavorModule.default;
+const { belongsToMany: flavorBelongsToMany } = FlavorModule;
+
+const ProductAttribute = ProductAttributeModule.default;
+const { belongsToMany: attributeBelongsToMany } = ProductAttributeModule;
+
+const ProductNutrition = ProductNutritionModule.default;
+const { belongsTo: nutritionBelongsTo } = ProductNutritionModule;
+
+const UserProfile = UserProfileModule.default;
+const { belongsTo: profileBelongsTo } = UserProfileModule;
+
+const Recommendation = RecommendationModule.default;
+const { belongsTo: recommendationBelongsTo } = RecommendationModule;
+
+const TrainingSession = TrainingSessionModule.default;
+const { belongsTo: sessionBelongsTo, hasMany: sessionHasMany } = TrainingSessionModule;
+
+// --- 3. DEFINIR ASOCIACIONES ---
 // User <-> UserProfile (One-to-One)
-User.hasOne(UserProfile, {
-    foreignKey: 'user_id', // En UserProfile
-    onDelete: 'CASCADE'    // Si se borra un User, se borra su UserProfile
+hasOne(UserProfile, {
+    foreignKey: 'user_id',
+    onDelete: 'CASCADE'
 });
-UserProfile.belongsTo(User, {
-    foreignKey: 'user_id'  // En UserProfile
+profileBelongsTo(User, {
+    foreignKey: 'user_id'
 });
 
 // ProductCategory <-> ProductType (One-to-Many)
-ProductCategory.hasMany(ProductType, {
-    foreignKey: 'category_id' // En ProductType
+categoryHasMany(ProductType, {
+    foreignKey: 'category_id'
 });
-ProductType.belongsTo(ProductCategory, {
-    foreignKey: 'category_id' // En ProductType
+typeBelongsTo(ProductCategory, {
+    foreignKey: 'category_id'
 });
 
 // ProductType <-> Product (One-to-Many)
-ProductType.hasMany(Product, {
-    foreignKey: 'type_id' // En Product
+typeHasMany(Product, {
+    foreignKey: 'type_id'
 });
-Product.belongsTo(ProductType, {
-    foreignKey: 'type_id' // En Product
+productBelongsTo(ProductType, {
+    foreignKey: 'type_id'
 });
 
 // Product <-> ProductNutrition (One-to-One)
-Product.hasOne(ProductNutrition, {
-    foreignKey: 'product_id' // En ProductNutrition
+productHasOne(ProductNutrition, {
+    foreignKey: 'product_id'
 });
-ProductNutrition.belongsTo(Product, {
-    foreignKey: 'product_id' // En ProductNutrition
+nutritionBelongsTo(Product, {
+    foreignKey: 'product_id'
 });
 
 // Product <-> Flavor (Many-to-Many)
-// La tabla intermedia es 'product_flavors'
-Product.belongsToMany(Flavor, {
-    through: 'product_flavors', // Nombre exacto de la tabla intermedia
-    foreignKey: 'product_id',    // Clave en product_flavors que referencia a products
-    otherKey: 'flavor_id',       // Clave en product_flavors que referencia a flavors
-    timestamps: false            // La tabla product_flavors no tiene timestamps
+productBelongsToMany(Flavor, {
+    through: 'product_flavors',
+    foreignKey: 'product_id',
+    otherKey: 'flavor_id',
+    timestamps: false
 });
-Flavor.belongsToMany(Product, {
+flavorBelongsToMany(Product, {
     through: 'product_flavors',
     foreignKey: 'flavor_id',
     otherKey: 'product_id',
@@ -68,14 +106,13 @@ Flavor.belongsToMany(Product, {
 });
 
 // Product <-> ProductAttribute (Many-to-Many)
-// La tabla intermedia es 'product_attributes_mapping'
-Product.belongsToMany(ProductAttribute, {
+productBelongsToMany(ProductAttribute, {
     through: 'product_attributes_mapping',
     foreignKey: 'product_id',
     otherKey: 'attribute_id',
     timestamps: false
 });
-ProductAttribute.belongsToMany(Product, {
+attributeBelongsToMany(Product, {
     through: 'product_attributes_mapping',
     foreignKey: 'attribute_id',
     otherKey: 'product_id',
@@ -83,74 +120,81 @@ ProductAttribute.belongsToMany(Product, {
 });
 
 // User <-> TrainingSession (One-to-Many)
-User.hasMany(TrainingSession, {
-    foreignKey: 'user_id' // En TrainingSession
+hasMany(TrainingSession, {
+    foreignKey: 'user_id'
 });
-TrainingSession.belongsTo(User, {
-    foreignKey: 'user_id' // En TrainingSession
+sessionBelongsTo(User, {
+    foreignKey: 'user_id'
 });
 
 // User <-> Recommendation (One-to-Many)
-User.hasMany(Recommendation, {
-    foreignKey: 'user_id' // En Recommendation
+hasMany(Recommendation, {
+    foreignKey: 'user_id'
 });
-Recommendation.belongsTo(User, {
-    foreignKey: 'user_id' // En Recommendation
+recommendationBelongsTo(User, {
+    foreignKey: 'user_id'
 });
 
 // Product <-> Recommendation (One-to-Many)
-Product.hasMany(Recommendation, {
-    foreignKey: 'product_id' // En Recommendation
+productHasMany(Recommendation, {
+    foreignKey: 'product_id'
 });
-Recommendation.belongsTo(Product, {
-    foreignKey: 'product_id' // En Recommendation
+recommendationBelongsTo(Product, {
+    foreignKey: 'product_id'
 });
 
-// TrainingSession <-> Recommendation (One-to-Many, pero session_id puede ser NULL)
-TrainingSession.hasMany(Recommendation, {
-    foreignKey: 'session_id', // En Recommendation
-    constraints: false // No fuerces la restricción si session_id puede ser null
-});
-Recommendation.belongsTo(TrainingSession, {
+// TrainingSession <-> Recommendation (One-to-Many)
+sessionHasMany(Recommendation, {
     foreignKey: 'session_id',
-    allowNull: true,    // Es importante para que Sequelize sepa que puede ser null
+    constraints: false
+});
+recommendationBelongsTo(TrainingSession, {
+    foreignKey: 'session_id',
+    allowNull: true,
     constraints: false
 });
 
-// Middlewares
+// --- 4. CONFIGURAR MIDDLEWARES Y RUTAS ---
 app.use(cors());
-app.use(bodyParser.json());
+app.use(json());
 
-// --- 3. SINCRONIZAR LA BASE DE DATOS (CON CUIDADO) ---
-// ... tus middlewares (app.use(express.json()), app.use(cors()), etc.)
+// Importar rutas
+import authRoutes from './routes/authRoutes.js';
+import profileRoutes from './routes/profileRoutes.js';
+import productRoutes from './routes/productRoutes.js';
+
+pool.getConnection()
+  .then((conn) => {
+    console.log('Database connected!');
+    conn.release();
+    
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.error('Database connection failed:', err);
+  });
+
+
 app.use('/api/auth', authRoutes);
 app.use('/api/users', profileRoutes);
 app.use('/api/products', productRoutes);
 
-// ... tus rutas (app.use('/api/auth', authRoutes), etc.)
-// Rutas
-const authRoutes = require('./routes/authRoutes');
-const profileRoutes = require('./routes/profileRoutes');
-const productRoutes = require('./routes/productRoutes'); // Nueva línea
-
+// --- 5. INICIAR SERVIDOR ---
 const PORT = process.env.PORT || 5000;
 
-sequelize.authenticate()
+authenticate()
     .then(() => {
-        console.log('Database connection has been established successfully.');
-        // Sincronizar modelos con la base de datos
-        // ¡PRECAUCIÓN con force: true en producción o con datos existentes!
-        return sequelize.sync({
-            // force: true, // Borra y recrea tablas. ¡PELIGROSO CON DATOS!
-            // alter: true, // Intenta modificar tablas. Más seguro, pero revisa.
-        }); // Sin opciones, solo crea tablas si no existen.
+        console.log('Database connection established');
+        return sync(); // Sin opciones para solo crear tablas si no existen
     })
     .then(() => {
-        console.log('All models were synchronized successfully.');
         app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
+            console.log(`Server running on port ${PORT}`);
         });
     })
     .catch(err => {
-        console.error('Unable to connect to the database or sync models:', err);
+        console.error('Database connection or sync failed:', err);
     });

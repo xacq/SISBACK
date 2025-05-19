@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const sequelize = require('../config/db.js').default;
 
 const UserProfile = sequelize.define('UserProfile', {
     profile_id: {
@@ -62,5 +62,14 @@ const UserProfile = sequelize.define('UserProfile', {
     tableName: 'user_profiles',
     timestamps: false
 });
+
+// Métodos de asociación
+export const hasOne = (model, options) => {
+  User.hasOne(model, options);
+};
+
+export const hasMany = (model, options) => {
+  User.hasMany(model, options);
+};
 
 module.exports = UserProfile;

@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db'); // Asegúrate que la ruta a tu config de Sequelize sea correcta
+const sequelize = require('../config/db').default; // Asegúrate que la ruta a tu config de Sequelize sea correcta
 
 const ProductCategory = sequelize.define('ProductCategory', {
     category_id: {
@@ -24,5 +24,14 @@ const ProductCategory = sequelize.define('ProductCategory', {
     tableName: 'product_categories',
     timestamps: false // Tu tabla no tiene createdAt/updatedAt
 });
+
+// Métodos de asociación
+export const hasOne = (model, options) => {
+  User.hasOne(model, options);
+};
+
+export const hasMany = (model, options) => {
+  User.hasMany(model, options);
+};
 
 module.exports = ProductCategory;

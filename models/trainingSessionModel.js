@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const sequelize = require('../config/db.js').default;
 
 const TrainingSession = sequelize.define('TrainingSession', {
     session_id: {
@@ -45,5 +45,14 @@ const TrainingSession = sequelize.define('TrainingSession', {
     tableName: 'training_sessions',
     timestamps: false
 });
+
+// Métodos de asociación
+export const hasOne = (model, options) => {
+  User.hasOne(model, options);
+};
+
+export const hasMany = (model, options) => {
+  User.hasMany(model, options);
+};
 
 module.exports = TrainingSession;

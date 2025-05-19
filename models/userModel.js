@@ -1,4 +1,4 @@
-  const db = require('../config/db');
+  import db from '../config/db.js';
 
   class User {
     static async create({ username, email, password }) {
@@ -85,5 +85,14 @@
   }
 }
 
-module.exports = User;
+// Métodos de asociación
+export const hasOne = (model, options) => {
+  User.hasOne(model, options);
+};
+
+export const hasMany = (model, options) => {
+  User.hasMany(model, options);
+};
+
+export default User;
 
