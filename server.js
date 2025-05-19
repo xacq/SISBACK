@@ -12,12 +12,13 @@ app.use(express.urlencoded({ extended: true }));
 
 // Importación segura de rutas
 import authRoutes from './routes/authRoutes.js';
-const userProfileRoutes = require('./routes/userProfile');
+import profileRoutes from './routes/profileRoutes.js';
 import productRoutes from './routes/productRoutes.js';
-const recommendationRoutes = require('./routes/recommendations');
+import recommendationRoutes from './routes/recommendations.js';
+
 
 app.use('/api/auth', authRoutes);
-app.use('/api/profile', userProfileRoutes);
+app.use('/api/profile', profileRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/recommendations', recommendationRoutes); // <-- AÑADIR ESTA LÍNEA
 

@@ -1,13 +1,14 @@
-// routes/recommendations.js
-const express = require('express');
+import express from 'express';
+import { 
+  getRecommendations, 
+  postRecommendationFeedback 
+} from '../controllers/recommendationController.js';
+import authMiddleware from '../middleware/authMiddleware.js';
+
 const router = express.Router();
-const recommendationController = require('../controllers/recommendationController');
-const authMiddleware = require('../middleware/authMiddleware'); // Tu middleware de JWT
 
-// GET /api/recommendations - Protegida
-router.get('/', authMiddleware, recommendationController.getRecommendations);
+// Rutas protegidas con JWT
+router.get('/', authMiddleware, getRecommendations);
+router.post('/feedback', authMiddleware, postRecommendationFeedback);
 
-// POST /api/recommendations/feedback - Protegida
-router.post('/feedback', authMiddleware, recommendationController.postRecommendationFeedback);
-
-module.exports = router;
+export default router;

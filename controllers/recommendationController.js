@@ -168,3 +168,8 @@ exports.postRecommendationFeedback = async (req, res) => {
         res.status(500).json({ message: "Failed to submit feedback." });
     }
 };
+
+export default {
+    getRecommendations,
+    postRecommendationFeedback
+};  
