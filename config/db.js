@@ -1,5 +1,5 @@
-import { createPool } from 'mysql2';
-require('dotenv').config();
+import { createPool } from 'mysql2/promise'; // Usar la versión promise
+import 'dotenv/config';
 
 const pool = createPool({
   host: process.env.DB_HOST,
@@ -12,15 +12,15 @@ const pool = createPool({
   queueLimit: 0
 });
 
-// Verificación de conexión
-pool.getConnection((err, conn) => {
-  if(err) {
-    console.error('Error connecting to MySQL:', err);
-    return;
+// Test de conexión automático
+(async () => {
+  try {
+    const conn = await pool.getConnection();
+    console.log('✅ Conexión a MySQL exitosa');
+    conn.release();
+  } catch (err) {
+    console.error('❌ Error de conexión a MySQL:', err);
   }
-  console.log('Successfully connected to MySQL database!');
-  conn.release();
-});
-  
-export default pool.promise();
+})();
 
+export default pool;

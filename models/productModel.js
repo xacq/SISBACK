@@ -1,54 +1,45 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db.js').default; // Importa la instancia de Sequelize
+import { BaseModel } from './BaseModel.js';
 
-const Product = sequelize.define('Product', {
-    product_id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-    },
-    type_id: { // FK explícita para la asociación
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-            model: 'product_types',
-            key: 'type_id'
-        }
-    },
-    name: {
-        type: DataTypes.STRING(100),
-        allowNull: false
-    },
-    description: {
-        type: DataTypes.TEXT,
-        allowNull: true
-    },
-    image_url: {
-        type: DataTypes.STRING(255),
-        allowNull: true
-    },
-    usage_recommendation: {
-        type: DataTypes.TEXT,
-        allowNull: true
-    },
-    is_active: {
-        type: DataTypes.BOOLEAN, // O DataTypes.TINYINT(1)
-        defaultValue: true,
-        allowNull: true
+class Product extends BaseModel {
+  static tableName = 'products';
+
+  static async findByCategory(categoryId) {
+    const [rows] = await pool.query(
+      'SELECT * FROM products WHERE category_id = ?',
+      [categoryId]
+    );
+    return rows;
+  }
+
+  static async createWithAttributes({ name, price, categoryId, attributes }) {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      const [productResult] = await connection.query(
+        'INSERT INTO products (name, price, category_id) VALUES (?, ?, ?)',
+        [name, price, categoryId]
+      );
+
+      const productId = productResult.insertId;
+      
+      // Insertar atributos relacionados
+      for (const attr of attributes) {
+        await connection.query(
+          'INSERT INTO product_attributes (product_id, name, value) VALUES (?, ?, ?)',
+          [productId, attr.name, attr.value]
+        );
+      }
+
+      await connection.commit();
+      return this.findById(productId);
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
     }
-}, {
-    tableName: 'products',
-    timestamps: false // Tu tabla no tiene createdAt/updatedAt
-});
+  }
+}
 
-
-// Métodos de asociación
-export const hasOne = (model, options) => {
-  User.hasOne(model, options);
-};
-
-export const hasMany = (model, options) => {
-  User.hasMany(model, options);
-};
-module.exports = Product;
+export default Product;

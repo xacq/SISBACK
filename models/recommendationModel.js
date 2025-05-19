@@ -1,62 +1,29 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db.js').default;
+import { BaseModel } from './BaseModel.js';
 
-const Recommendation = sequelize.define('Recommendation', {
-    recommendation_id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-    },
-    user_id: { // FK
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'users',
-            key: 'user_id'
-        }
-    },
-    session_id: { // FK
-        type: DataTypes.INTEGER,
-        allowNull: true, // Puede no estar asociada a una sesión específica
-        references: {
-            model: 'training_sessions',
-            key: 'session_id'
-        }
-    },
-    product_id: { // FK
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'products',
-            key: 'product_id'
-        }
-    },
-    recommended_at: {
-        type: DataTypes.DATE, // TIMESTAMP se maneja como DATE en Sequelize
-        defaultValue: DataTypes.NOW,
-        allowNull: false
-    },
-    feedback: {
-        type: DataTypes.ENUM('positivo', 'neutral', 'negativo'),
-        allowNull: true
-    },
-    feedback_notes: {
-        type: DataTypes.TEXT,
-        allowNull: true
-    }
-}, {
-    tableName: 'recommendations',
-    timestamps: false // 'recommended_at' se maneja con defaultValue
-});
+class Recommendation extends BaseModel {
+  static tableName = 'recommendations';
 
-// Métodos de asociación
-export const hasOne = (model, options) => {
-  User.hasOne(model, options);
-};
+  static async getPersonalized(userId, limit = 5) {
+    const [recommendations] = await pool.query(`
+      SELECT r.*, p.name as product_name, p.price
+      FROM recommendations r
+      JOIN products p ON r.product_id = p.id
+      WHERE r.user_id = ?
+      ORDER BY r.score DESC
+      LIMIT ?
+    `, [userId, limit]);
+    return recommendations;
+  }
 
-export const hasMany = (model, options) => {
-  User.hasMany(model, options);
-};
+  static async logInteraction(userId, productId, action = 'view') {
+    const [result] = await pool.query(
+      `INSERT INTO recommendation_interactions 
+        (user_id, product_id, action)
+        VALUES (?, ?, ?)`,
+      [userId, productId, action]
+    );
+    return result.insertId;
+  }
+}
 
-module.exports = Recommendation;
+export default Recommendation;

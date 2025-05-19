@@ -1,75 +1,55 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db.js').default;
+import { BaseModel } from './BaseModel.js';
 
-const UserProfile = sequelize.define('UserProfile', {
-    profile_id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-    },
-    user_id: { // FK explícita
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'users',
-            key: 'user_id'
-        },
-        onDelete: 'CASCADE' // Si se borra un usuario, se borra su perfil
-    },
-    age: {
-        type: DataTypes.INTEGER,
-        allowNull: true
-    },
-    weight: {
-        type: DataTypes.DECIMAL(5, 2),
-        allowNull: true
-    },
-    height: {
-        type: DataTypes.DECIMAL(5, 2),
-        allowNull: true
-    },
-    gender: {
-        type: DataTypes.ENUM('hombre', 'mujer', 'otro', 'prefiero no decir'),
-        allowNull: true
-    },
-    activity_level: {
-        type: DataTypes.ENUM('sedentario', 'ligero', 'moderado', 'activo', 'muy activo'), // Ajustado
-        allowNull: true
-    },
-    training_frequency: {
-        type: DataTypes.ENUM('1-2', '3-4', '5+', 'ocacional'),
-        allowNull: true
-    },
-    primary_goal: {
-        type: DataTypes.ENUM('mejor rendimiento', 'perder peso', 'ganar musculo', 'resistencia', 'recuperacion', 'por salud'),
-        allowNull: true
-    },
-    sweat_level: {
-        type: DataTypes.ENUM('bajo', 'medio', 'alto'),
-        allowNull: true
-    },
-    caffeine_tolerance: {
-        type: DataTypes.ENUM('no', 'bajo', 'medio', 'alto'),
-        allowNull: true
-    },
-    dietary_restrictions: {
-        type: DataTypes.ENUM('vegetariano', 'vegano', 'libre de gluten', 'libre de lactosa', 'libre de frutos secos', 'no'),
-        defaultValue: 'no',
-        allowNull: true // Aunque tenga default, puede ser explícitamente nulo si así se desea
+class UserProfile extends BaseModel {
+  static tableName = 'user_profiles';
+
+  static async completeProfile(userId, profileData) {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      const [result] = await connection.query(
+        `INSERT INTO ${this.tableName} 
+          (user_id, bio, avatar_url, height, weight, birth_date)
+          VALUES (?, ?, ?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+          bio = VALUES(bio),
+          avatar_url = VALUES(avatar_url),
+          height = VALUES(height),
+          weight = VALUES(weight),
+          birth_date = VALUES(birth_date)`,
+        [
+          userId,
+          profileData.bio,
+          profileData.avatarUrl,
+          profileData.height,
+          profileData.weight,
+          profileData.birthDate
+        ]
+      );
+
+      await connection.query(
+        'UPDATE users SET profile_completed = TRUE WHERE id = ?',
+        [userId]
+      );
+
+      await connection.commit();
+      return this.findByUserId(userId);
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
     }
-}, {
-    tableName: 'user_profiles',
-    timestamps: false
-});
+  }
 
-// Métodos de asociación
-export const hasOne = (model, options) => {
-  User.hasOne(model, options);
-};
+  static async findByUserId(userId) {
+    const [rows] = await pool.query(
+      'SELECT * FROM user_profiles WHERE user_id = ?',
+      [userId]
+    );
+    return rows[0] || null;
+  }
+}
 
-export const hasMany = (model, options) => {
-  User.hasMany(model, options);
-};
-
-module.exports = UserProfile;
+export default UserProfile;

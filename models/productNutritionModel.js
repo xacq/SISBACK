@@ -1,74 +1,36 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db.js').default;
+import { BaseModel } from './BaseModel.js';
 
-const ProductNutrition = sequelize.define('ProductNutrition', {
-    nutrition_id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-    },
-    product_id: { // FK explícita para la asociación
-        type: DataTypes.INTEGER,
-        allowNull: true, // O false si siempre debe tener un producto
-        references: {
-            model: 'products',
-            key: 'product_id'
-        }
-    },
-    serving_size: {
-        type: DataTypes.STRING(50),
-        allowNull: true
-    },
-    energy_kcal: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: true
-    },
-    protein_g: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: true
-    },
-    carbs_g: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: true
-    },
-    sugars_g: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: true
-    },
-    sodium_mg: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: true
-    },
-    potassium_mg: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false
-    },
-    magnesium_mg: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false
-    },
-    caffeine_mg: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: true
-    },
-    other_components: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-        defaultValue: 'None'
+class ProductNutrition extends BaseModel {
+  static tableName = 'product_nutrition';
+
+  static async getByProduct(productId) {
+    const [nutrition] = await pool.query(
+      'SELECT * FROM product_nutrition WHERE product_id = ?',
+      [productId]
+    );
+    return nutrition[0] || null;
+  }
+
+  static async updateOrCreate(productId, data) {
+    const existing = await this.getByProduct(productId);
+    if (existing) {
+      const [result] = await pool.query(
+        `UPDATE ${this.tableName} SET 
+          calories = ?, protein = ?, carbs = ?, fat = ?
+          WHERE product_id = ?`,
+        [data.calories, data.protein, data.carbs, data.fat, productId]
+      );
+      return result.affectedRows > 0;
+    } else {
+      const [result] = await pool.query(
+        `INSERT INTO ${this.tableName} 
+          (product_id, calories, protein, carbs, fat)
+          VALUES (?, ?, ?, ?, ?)`,
+        [productId, data.calories, data.protein, data.carbs, data.fat]
+      );
+      return result.insertId;
     }
-}, {
-    tableName: 'product_nutrition',
-    timestamps: false
-});
+  }
+}
 
-// Métodos de asociación
-export const hasOne = (model, options) => {
-  User.hasOne(model, options);
-};
-
-export const hasMany = (model, options) => {
-  User.hasMany(model, options);
-};
-
-module.exports = ProductNutrition;
+export default ProductNutrition;

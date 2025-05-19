@@ -1,12 +1,15 @@
-const express = require('express');
+// routes/productRoutes.js
+import express from 'express';
+import ProductController from '../controllers/productController.js';
+
 const router = express.Router();
-const productController = require('../controllers/productController');
 
-router.get('/categories', productController.getCategories);
-router.get('/category/:categoryId', productController.getProductsByCategory);
-router.get('/:productId', productController.getProductDetails);
-router.get('/:productId/nutrition', productController.getProductNutrition);
-router.get('/:productId/flavors', productController.getProductFlavors);
-router.get('/:productId/attributes', productController.getProductAttributes);
+router.get('/categories', ProductController.getCategories);
+router.get('/category/:categoryId', ProductController.getProductsByCategory);
+router.get('/:productId', ProductController.getProductDetails);
+router.get('/:productId/nutrition', ProductController.getProductNutrition);
+router.get('/:productId/flavors', ProductController.getProductFlavors);
+router.get('/:productId/attributes', ProductController.getProductAttributes);
+router.get('/:productId/full', ProductController.getFullProductDetails);
 
-module.exports = router;
+export default router;

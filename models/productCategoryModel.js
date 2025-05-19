@@ -1,37 +1,24 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db').default; // Asegúrate que la ruta a tu config de Sequelize sea correcta
+import { BaseModel } from './BaseModel.js';
 
-const ProductCategory = sequelize.define('ProductCategory', {
-    category_id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-    },
-    name: {
-        type: DataTypes.ENUM('energia', 'hidratacion', 'recuperacion', 'vitaminas'),
-        allowNull: true // o false si es obligatorio
-    },
-    description: {
-        type: DataTypes.TEXT,
-        allowNull: true
-    },
-    usage_context: {
-        type: DataTypes.ENUM('pre entrenamiento', 'durante entrenamiento', 'post entrenamiento', 'diario'),
-        allowNull: true
-    }
-}, {
-    tableName: 'product_categories',
-    timestamps: false // Tu tabla no tiene createdAt/updatedAt
-});
+class ProductCategory extends BaseModel {
+  static tableName = 'product_categories';
 
-// Métodos de asociación
-export const hasOne = (model, options) => {
-  User.hasOne(model, options);
-};
+  static async findWithProducts() {
+    const [categories] = await pool.query(`
+      SELECT c.*, 
+        (SELECT COUNT(*) FROM products WHERE category_id = c.id) as product_count
+      FROM ${this.tableName} c
+    `);
+    return categories;
+  }
 
-export const hasMany = (model, options) => {
-  User.hasMany(model, options);
-};
+  static async createWithImage({ name, description, imageUrl }) {
+    const [result] = await pool.query(
+      'INSERT INTO product_categories (name, description, image_url) VALUES (?, ?, ?)',
+      [name, description, imageUrl]
+    );
+    return this.findById(result.insertId);
+  }
+}
 
-module.exports = ProductCategory;
+export default ProductCategory;

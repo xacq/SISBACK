@@ -1,58 +1,44 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db.js').default;
+import { BaseModel } from './BaseModel.js';
 
-const TrainingSession = sequelize.define('TrainingSession', {
-    session_id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-    },
-    user_id: { // FK
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'users',
-            key: 'user_id'
-        }
-    },
-    session_date: {
-        type: DataTypes.DATEONLY, // Solo fecha
-        allowNull: false
-    },
-    duration_min: {
-        type: DataTypes.INTEGER,
-        allowNull: false
-    },
-    intensity: {
-        type: DataTypes.ENUM('bajo', 'medio', 'alto', 'muy alto'),
-        allowNull: true
-    },
-    type: { // 'type' es una palabra reservada en JS, Sequelize la maneja bien pero ten cuidado
-        type: DataTypes.ENUM('cardio', 'fuerza', 'hiit', 'resistencia', 'mixed', 'otro'),
-        allowNull: true,
-        field: 'type' // Asegura el mapeo correcto si hay conflicto
-    },
-    weather: {
-        type: DataTypes.ENUM('frio', 'fresco', 'moderado', 'calido', 'caliente', 'humedo'),
-        allowNull: true
-    },
-    notes: {
-        type: DataTypes.TEXT,
-        allowNull: true
+class TrainingSession extends BaseModel {
+  static tableName = 'training_sessions';
+
+  static async findByUserId(userId) {
+    const [rows] = await pool.query(
+      `SELECT * FROM ${this.tableName} WHERE user_id = ? ORDER BY date DESC`,
+      [userId]
+    );
+    return rows;
+  }
+
+  static async createSession({ userId, duration, exercises }) {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      const [sessionResult] = await connection.query(
+        'INSERT INTO training_sessions (user_id, duration) VALUES (?, ?)',
+        [userId, duration]
+      );
+
+      const sessionId = sessionResult.insertId;
+      
+      for (const exercise of exercises) {
+        await connection.query(
+          'INSERT INTO session_exercises (session_id, exercise_id, sets, reps) VALUES (?, ?, ?, ?)',
+          [sessionId, exercise.id, exercise.sets, exercise.reps]
+        );
+      }
+
+      await connection.commit();
+      return this.findById(sessionId);
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
     }
-}, {
-    tableName: 'training_sessions',
-    timestamps: false
-});
+  }
+}
 
-// Métodos de asociación
-export const hasOne = (model, options) => {
-  User.hasOne(model, options);
-};
-
-export const hasMany = (model, options) => {
-  User.hasMany(model, options);
-};
-
-module.exports = TrainingSession;
+export default TrainingSession;

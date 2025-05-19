@@ -1,7 +1,7 @@
-const bcrypt = require('bcryptjs');
-const User = require('../models/userModel.js').default;
+import bcrypt from 'bcryptjs';
+import User from '../models/userModel.js';
 
-exports.register = async (req, res) => {
+export const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
     
@@ -47,15 +47,16 @@ exports.register = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error('Error en register:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error en el servidor'
+      message: 'Error en el servidor',
+      error: error.message // Opcional: incluir el mensaje de error
     });
   }
 };
 
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     
@@ -72,17 +73,18 @@ exports.login = async (req, res) => {
       success: true, 
       message: 'Inicio de sesión exitoso',
       user: {
-        id: user.user_id,
+        id: user.id, // Cambiado de user_id a id para consistencia
         username: user.username,
         email: user.email
       }
     });
 
   } catch (error) {
-    console.error(error);
+    console.error('Error en login:', error);
     return res.status(500).json({ 
       success: false, 
-      message: 'Error en el servidor' 
+      message: 'Error en el servidor',
+      error: error.message // Opcional: incluir el mensaje de error
     });
   }
 };

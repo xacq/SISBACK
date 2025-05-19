@@ -1,29 +1,29 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db.js').default;
+import { BaseModel } from './BaseModel.js';
 
-const Flavor = sequelize.define('Flavor', {
-    flavor_id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false
-    },
-    name: {
-        type: DataTypes.STRING(50),
-        allowNull: false
-    }
-}, {
-    tableName: 'flavors',
-    timestamps: false
-});
+class Flavor extends BaseModel {
+  static tableName = 'flavors';
 
-// Métodos de asociación
-export const hasOne = (model, options) => {
-  User.hasOne(model, options);
-};
+  static async getPopular(limit = 5) {
+    const [rows] = await pool.query(`
+      SELECT f.*, COUNT(pf.product_id) as product_count
+      FROM flavors f
+      LEFT JOIN product_flavors pf ON f.id = pf.flavor_id
+      GROUP BY f.id
+      ORDER BY product_count DESC
+      LIMIT ?
+    `, [limit]);
+    return rows;
+  }
 
-export const hasMany = (model, options) => {
-  User.hasMany(model, options);
-};
+  static async getByProduct(productId) {
+  const [flavors] = await pool.query(`
+    SELECT f.* 
+    FROM flavors f
+    JOIN product_flavors pf ON f.id = pf.flavor_id
+    WHERE pf.product_id = ?
+  `, [productId]);
+  return flavors;
+}
+}
 
 export default Flavor;

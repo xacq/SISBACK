@@ -1,84 +1,168 @@
-const db = require('../config/db').default;
+import { 
+  Product, 
+  ProductCategory, 
+  ProductType,
+  ProductNutrition,
+  Flavor,
+  ProductAttribute 
+} from '../models/index.js';
 
-exports.getCategories = async (req, res) => {
-  try {
-    const [rows] = await db.execute('SELECT * FROM product_categories');
-    res.json(rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al obtener categorías' });
-  }
-};
-
-exports.getProductsByCategory = async (req, res) => {
-  try {
-    const { categoryId } = req.params;
-    const [rows] = await db.execute(`
-      SELECT p.*, pt.name AS type_name, pt.description AS type_description 
-      FROM products p
-      JOIN product_types pt ON p.type_id = pt.type_id
-      WHERE pt.category_id = ?
-    `, [categoryId]);
-    res.json(rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al obtener productos' });
-  }
-};
-
-exports.getProductDetails = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    const [rows] = await db.execute('SELECT * FROM products WHERE product_id = ?', [productId]);
-    if (rows.length === 0) {
-      return res.status(404).json({ message: 'Producto no encontrado' });
+class ProductController {
+  /**
+   * Obtener todas las categorías de productos
+   */
+  static async getCategories(req, res) {
+    try {
+      const categories = await ProductCategory.findAll();
+      res.json(categories);
+    } catch (error) {
+      console.error('Error en ProductController.getCategories:', error);
+      res.status(500).json({ 
+        message: 'Error al obtener categorías',
+        error: error.message 
+      });
     }
-    res.json(rows[0]);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al obtener detalles del producto' });
   }
-};
 
-exports.getProductNutrition = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    const [rows] = await db.execute('SELECT * FROM product_nutrition WHERE product_id = ?', [productId]);
-    res.json(rows[0] || {});
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al obtener información nutricional' });
-  }
-};
+  /**
+   * Obtener productos por categoría
+   */
+  static async getProductsByCategory(req, res) {
+    try {
+      const { categoryId } = req.params;
+      
+      const [category, products] = await Promise.all([
+        ProductCategory.findById(categoryId),
+        Product.findByCategory(categoryId)
+      ]);
 
-exports.getProductFlavors = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    const [rows] = await db.execute(`
-      SELECT pf.*, f.name 
-      FROM product_flavors pf
-      JOIN flavors f ON pf.flavor_id = f.flavor_id
-      WHERE pf.product_id = ?
-    `, [productId]);
-    res.json(rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al obtener sabores del producto' });
-  }
-};
+      if (!category) {
+        return res.status(404).json({ message: 'Categoría no encontrada' });
+      }
 
-exports.getProductAttributes = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    const [rows] = await db.execute(`
-    SELECT pa.*
-    FROM product_attributes_mapping pam
-    JOIN product_attributes pa ON pam.attribute_id = pa.attribute_id
-    WHERE pam.product_id = ?
-    `, [productId]);
-    res.json(rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al obtener atributos del producto' });
+      res.json({
+        category,
+        products
+      });
+    } catch (error) {
+      console.error('Error en ProductController.getProductsByCategory:', error);
+      res.status(500).json({ 
+        message: 'Error al obtener productos por categoría',
+        error: error.message 
+      });
+    }
   }
-};
+
+  /**
+   * Obtener detalles completos de un producto
+   */
+  static async getProductDetails(req, res) {
+    try {
+      const { productId } = req.params;
+      
+      const product = await Product.findById(productId);
+      if (!product) {
+        return res.status(404).json({ message: 'Producto no encontrado' });
+      }
+
+      res.json(product);
+    } catch (error) {
+      console.error('Error en ProductController.getProductDetails:', error);
+      res.status(500).json({ 
+        message: 'Error al obtener detalles del producto',
+        error: error.message 
+      });
+    }
+  }
+
+  /**
+   * Obtener información nutricional de un producto
+   */
+  static async getProductNutrition(req, res) {
+    try {
+      const { productId } = req.params;
+      const nutrition = await ProductNutrition.getByProduct(productId);
+      res.json(nutrition || {});
+    } catch (error) {
+      console.error('Error en ProductController.getProductNutrition:', error);
+      res.status(500).json({ 
+        message: 'Error al obtener información nutricional',
+        error: error.message 
+      });
+    }
+  }
+
+  /**
+   * Obtener sabores disponibles para un producto
+   */
+  static async getProductFlavors(req, res) {
+    try {
+      const { productId } = req.params;
+      const flavors = await Flavor.getByProduct(productId);
+      res.json(flavors);
+    } catch (error) {
+      console.error('Error en ProductController.getProductFlavors:', error);
+      res.status(500).json({ 
+        message: 'Error al obtener sabores del producto',
+        error: error.message 
+      });
+    }
+  }
+
+  /**
+   * Obtener atributos específicos de un producto
+   */
+  static async getProductAttributes(req, res) {
+    try {
+      const { productId } = req.params;
+      const attributes = await ProductAttribute.getByProduct(productId);
+      res.json(attributes);
+    } catch (error) {
+      console.error('Error en ProductController.getProductAttributes:', error);
+      res.status(500).json({ 
+        message: 'Error al obtener atributos del producto',
+        error: error.message 
+      });
+    }
+  }
+
+  /**
+   * Obtener todos los datos de un producto en un solo endpoint
+   */
+  static async getFullProductDetails(req, res) {
+    try {
+      const { productId } = req.params;
+      
+      const [
+        product,
+        nutrition,
+        flavors,
+        attributes
+      ] = await Promise.all([
+        Product.findById(productId),
+        ProductNutrition.getByProduct(productId),
+        Flavor.getByProduct(productId),
+        ProductAttribute.getByProduct(productId)
+      ]);
+
+      if (!product) {
+        return res.status(404).json({ message: 'Producto no encontrado' });
+      }
+
+      res.json({
+        ...product,
+        nutrition: nutrition || {},
+        flavors: flavors || [],
+        attributes: attributes || []
+      });
+    } catch (error) {
+      console.error('Error en ProductController.getFullProductDetails:', error);
+      res.status(500).json({ 
+        message: 'Error al obtener detalles completos del producto',
+        error: error.message 
+      });
+    }
+  }
+}
+
+export default ProductController;
