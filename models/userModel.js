@@ -1,4 +1,5 @@
 import { BaseModel } from './BaseModel.js';
+import pool from '../config/db.js';
 
 class User extends BaseModel {
   static tableName = 'users';
@@ -8,10 +9,10 @@ class User extends BaseModel {
     return rows[0] || null;
   }
 
-  static async create({ name, email, password }) {
+  static async create({ username, email, password }) {
     const [result] = await pool.query(
-      'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
-      [name, email, password]
+      'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
+      [username, email, password]
     );
     return this.findById(result.insertId);
   }
