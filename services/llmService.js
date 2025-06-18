@@ -1,5 +1,5 @@
 // services/llmService.js
-const OpenAI = require('openai');
+import OpenAI from 'openai';
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY, // Asegúrate de tener esto en tu .env
@@ -31,7 +31,7 @@ async function getRecommendationsFromLLM(userProfile, candidateProducts, numReco
         - Objetivo Principal: ${userProfile.primary_goal || 'No especificado'}
         - Nivel de Sudoración: ${userProfile.sweat_level || 'No especificado'}
         - Tolerancia a la Cafeína: ${userProfile.caffeine_tolerance || 'No especificada'}
-        - Restricciones Dietéticas: ${userProfile.dietary_restrictions || 'Ninguna'}
+        - Restricciones Dietéticas: ${userProfile.dietary_restrictions || 'no'}
     `.trim();
 
     const productsString = candidateProducts.map(p => `
@@ -51,10 +51,14 @@ async function getRecommendationsFromLLM(userProfile, candidateProducts, numReco
     `).join(',\n');
 
     const systemPrompt = `
-        Eres SportNutriBot, un asistente experto en nutrición deportiva. Tu tarea es analizar el perfil de un usuario y una lista de productos de suplementación deportiva disponibles para recomendar los más idóneos.
-        Debes basar tus recomendaciones estrictamente en la información proporcionada del perfil y de los productos.
+        Eres un asistente experto en nutrición deportiva. 
+        Tu tarea es analizar el perfil de un usuario y una lista de productos de suplementación 
+        deportiva disponibles para recomendar los más idóneos.
+        Debes basar tus recomendaciones estrictamente en la información proporcionada del perfil 
+        y de los productos.
         No inventes productos ni propiedades que no estén en la lista.
-        Prioriza productos que se alineen directamente con el objetivo principal, nivel de actividad y restricciones dietéticas del usuario.
+        Prioriza productos que se alineen directamente con el objetivo principal, nivel de actividad 
+        y restricciones dietéticas del usuario.
         Considera la tolerancia a la cafeína si se especifica.
     `.trim();
 
@@ -146,6 +150,4 @@ async function getRecommendationsFromLLM(userProfile, candidateProducts, numReco
     }
 }
 
-module.exports = {
-    getRecommendationsFromLLM,
-};
+export default getRecommendationsFromLLM;

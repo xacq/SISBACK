@@ -1,6 +1,6 @@
 // middleware/authMiddleware.js
-const jwt = require('jsonwebtoken');
-const dotenv = require('dotenv');
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
 dotenv.config(); // Para cargar JWT_SECRET desde .env
 

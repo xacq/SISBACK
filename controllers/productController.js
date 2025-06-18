@@ -39,7 +39,7 @@ class ProductController {
       if (!category) {
         return res.status(404).json({ message: 'Categoría no encontrada' });
       }
-
+      
       res.json({
         category,
         products

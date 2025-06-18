@@ -1,9 +1,9 @@
 // controllers/recommendationController.js
-const db = require('../config/db');
-const retrievalService = require('../services/retrievalService');
-const llmService = require('../services/llmService');
+import db from '../config/db.js';
+import retrievalService from'../services/retrievalService.js';
+import llmService from '../services/llmService.js';
 
-exports.getRecommendations = async (req, res) => {
+export const getRecommendations = async (req, res) => {
     const userId = req.user.id; // Asumiendo que tu middleware authMiddleware añade `req.user = { id: userId, ... }`
 
     try {
@@ -118,7 +118,7 @@ exports.getRecommendations = async (req, res) => {
 
 
 // TODO: Implementar endpoint de feedback
-exports.postRecommendationFeedback = async (req, res) => {
+export const postRecommendationFeedback = async (req, res) => {
     const userId = req.user.id;
     const { recommendation_id, product_id, feedback, feedback_notes } = req.body; // feedback_notes será la justificación/feedback del usuario
 
@@ -134,7 +134,6 @@ exports.postRecommendationFeedback = async (req, res) => {
         // Por ahora, actualizamos la última entrada para user_id y product_id donde feedback_notes es el overall_reasoning y feedback_notes_user es el nuevo.
         // Asumimos que tenemos recommendation_id de alguna forma.
         // Una mejor forma es que `recommendations` tenga `recommendation_session_uuid` y el feedback sea sobre esa sesión
-        
         // Si tienes 'recommendation_id' de la tabla recommendations
         if (recommendation_id) {
             const [result] = await db.query(
@@ -168,8 +167,3 @@ exports.postRecommendationFeedback = async (req, res) => {
         res.status(500).json({ message: "Failed to submit feedback." });
     }
 };
-
-export default {
-    getRecommendations,
-    postRecommendationFeedback
-};  

@@ -1,5 +1,5 @@
 // services/retrievalService.js
-const db = require('../config/db'); // Tu archivo de conexión a la BD
+import db from '../config/db.js'; // Tu archivo de conexión a la BD
 
 const MAX_CANDIDATE_PRODUCTS = 20; // Número máximo de productos a recuperar
 
@@ -169,6 +169,4 @@ async function getCandidateProducts(userProfile) {
     }
 }
 
-module.exports = {
-    getCandidateProducts,
-};
+export default getCandidateProducts;
