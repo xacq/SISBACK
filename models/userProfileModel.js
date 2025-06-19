@@ -1,4 +1,5 @@
 import { BaseModel } from './BaseModel.js';
+import pool from '../config/db.js';
 
 class UserProfile extends BaseModel {
   static tableName = 'user_profiles';

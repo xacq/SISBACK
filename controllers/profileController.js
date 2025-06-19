@@ -24,7 +24,7 @@ export const saveProfile = async (req, res) => {
         }
 
         // Validación adicional de rangos
-        if (profileData.age < 12 || profileData.age > 120) {
+        if (profileData.age < 12 || profileData.age > 100) {
             return res.status(400).json({
                 success: false,
                 message: 'La edad debe estar entre 12 y 100 años'
