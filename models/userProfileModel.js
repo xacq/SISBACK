@@ -2,6 +2,7 @@ import { BaseModel } from './BaseModel.js';
 
 class UserProfile extends BaseModel {
   static tableName = 'user_profiles';
+  static idColumn = 'profile_id';
 
   static async completeProfile(userId, profileData) {
     const connection = await pool.getConnection();

@@ -3,6 +3,7 @@ import pool from '../config/db.js';
 
 class User extends BaseModel {
   static tableName = 'users';
+  static idColumn = 'user_id';
 
   static async findByEmail(email) {
     const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);

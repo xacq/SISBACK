@@ -2,6 +2,7 @@ import { BaseModel } from './BaseModel.js';
 
 class ProductNutrition extends BaseModel {
   static tableName = 'product_nutrition';
+  static idColumn = 'nutrition_id';
 
   static async getByProduct(productId) {
     const [nutrition] = await pool.query(

@@ -1,11 +1,16 @@
 import { BaseModel } from './BaseModel.js';
+import pool from '../config/db.js';
 
 class Product extends BaseModel {
   static tableName = 'products';
+  static idColumn = 'product_id';
 
   static async findByCategory(categoryId) {
     const [rows] = await pool.query(
-      'SELECT * FROM products WHERE category_id = ?',
+      `SELECT p.* 
+       FROM products p 
+       JOIN product_types pt ON p.type_id = pt.type_id 
+       WHERE pt.category_id = ?`,
       [categoryId]
     );
     return rows;

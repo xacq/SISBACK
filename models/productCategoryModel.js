@@ -2,6 +2,7 @@ import { BaseModel } from './BaseModel.js';
 
 class ProductCategory extends BaseModel {
   static tableName = 'product_categories';
+  static idColumn = 'category_id';
 
   static async findWithProducts() {
     const [categories] = await pool.query(`

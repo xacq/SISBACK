@@ -2,6 +2,7 @@ import { BaseModel } from './BaseModel.js';
 
 class Flavor extends BaseModel {
   static tableName = 'flavors';
+  static idColumn = 'flavor_id';
 
   static async getPopular(limit = 5) {
     const [rows] = await pool.query(`

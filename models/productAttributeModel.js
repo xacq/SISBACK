@@ -2,6 +2,7 @@ import { BaseModel } from './BaseModel.js';
 
 class ProductAttribute extends BaseModel {
   static tableName = 'product_attributes';
+  static idColumn = 'attribute_id';
 
   static async getByProduct(productId) {
     const [attributes] = await pool.query(`
