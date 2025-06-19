@@ -16,18 +16,63 @@ class ProductNutrition extends BaseModel {
     const existing = await this.getByProduct(productId);
     if (existing) {
       const [result] = await pool.query(
-        `UPDATE ${this.tableName} SET 
-          calories = ?, protein = ?, carbs = ?, fat = ?
+        `UPDATE ${this.tableName} SET
+          serving_size = ?,
+          energy_kcal = ?,
+          protein_g = ?,
+          carbs_g = ?,
+          sugars_g = ?,
+          sodium_mg = ?,
+          potassium_mg = ?,
+          magnesium_mg = ?,
+          caffeine_mg = ?,
+          other_components = ?
           WHERE product_id = ?`,
-        [data.calories, data.protein, data.carbs, data.fat, productId]
+        [
+          data.serving_size,
+          data.energy_kcal,
+          data.protein_g,
+          data.carbs_g,
+          data.sugars_g,
+          data.sodium_mg,
+          data.potassium_mg,
+          data.magnesium_mg,
+          data.caffeine_mg,
+          data.other_components,
+          productId
+        ]
       );
       return result.affectedRows > 0;
     } else {
       const [result] = await pool.query(
-        `INSERT INTO ${this.tableName} 
-          (product_id, calories, protein, carbs, fat)
-          VALUES (?, ?, ?, ?, ?)`,
-        [productId, data.calories, data.protein, data.carbs, data.fat]
+        `INSERT INTO ${this.tableName}
+          (
+            product_id,
+            serving_size,
+            energy_kcal,
+            protein_g,
+            carbs_g,
+            sugars_g,
+            sodium_mg,
+            potassium_mg,
+            magnesium_mg,
+            caffeine_mg,
+            other_components
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          productId,
+          data.serving_size,
+          data.energy_kcal,
+          data.protein_g,
+          data.carbs_g,
+          data.sugars_g,
+          data.sodium_mg,
+          data.potassium_mg,
+          data.magnesium_mg,
+          data.caffeine_mg,
+          data.other_components
+        ]
       );
       return result.insertId;
     }

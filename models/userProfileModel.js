@@ -30,7 +30,7 @@ class UserProfile extends BaseModel {
       );
 
       await connection.query(
-        'UPDATE users SET profile_completed = TRUE WHERE id = ?',
+        'UPDATE users SET profile_completed = TRUE WHERE user_id = ?',
         [userId]
       );
 

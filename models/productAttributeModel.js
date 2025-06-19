@@ -8,7 +8,7 @@ class ProductAttribute extends BaseModel {
     const [attributes] = await pool.query(`
       SELECT pa.* 
       FROM product_attributes pa
-      JOIN product_attribute_mappings pam ON pa.id = pam.attribute_id
+      JOIN product_attributes_mapping pam ON pa.attribute_id = pam.attribute_id
       WHERE pam.product_id = ?
     `, [productId]);
     return attributes;

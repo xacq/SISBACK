@@ -2,10 +2,11 @@ import { BaseModel } from './BaseModel.js';
 
 class TrainingSession extends BaseModel {
   static tableName = 'training_sessions';
+  static idColumn = 'session_id';
 
   static async findByUserId(userId) {
     const [rows] = await pool.query(
-      `SELECT * FROM ${this.tableName} WHERE user_id = ? ORDER BY date DESC`,
+      `SELECT * FROM ${this.tableName} WHERE user_id = ? ORDER BY session_date DESC`,
       [userId]
     );
     return rows;

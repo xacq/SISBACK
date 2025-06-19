@@ -2,12 +2,13 @@ import { BaseModel } from './BaseModel.js';
 
 class Recommendation extends BaseModel {
   static tableName = 'recommendations';
+  static idColumn = 'recommendation_id';
 
   static async getPersonalized(userId, limit = 5) {
     const [recommendations] = await pool.query(`
       SELECT r.*, p.name as product_name, p.price
       FROM recommendations r
-      JOIN products p ON r.product_id = p.id
+      JOIN products p ON r.product_id = p.product_id
       WHERE r.user_id = ?
       ORDER BY r.score DESC
       LIMIT ?

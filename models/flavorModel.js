@@ -8,8 +8,8 @@ class Flavor extends BaseModel {
     const [rows] = await pool.query(`
       SELECT f.*, COUNT(pf.product_id) as product_count
       FROM flavors f
-      LEFT JOIN product_flavors pf ON f.id = pf.flavor_id
-      GROUP BY f.id
+      LEFT JOIN product_flavors pf ON f.flavor_id = pf.flavor_id
+      GROUP BY f.flavor_id
       ORDER BY product_count DESC
       LIMIT ?
     `, [limit]);
@@ -20,7 +20,7 @@ class Flavor extends BaseModel {
   const [flavors] = await pool.query(`
     SELECT f.* 
     FROM flavors f
-    JOIN product_flavors pf ON f.id = pf.flavor_id
+    JOIN product_flavors pf ON f.flavor_id = pf.flavor_id
     WHERE pf.product_id = ?
   `, [productId]);
   return flavors;
